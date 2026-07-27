@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Masuk{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card auth-card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Masuk</h1>
+        <p class="text-muted small mb-4">Gunakan NPM pemilih atau akun admin.</p>
+        <form method="POST" action="{{ url_for('login') }}">
+          <div class="mb-3">
+            <label class="form-label">NPM / username</label>
+            <input type="text" name="npm" class="form-control" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Masuk</button>
+        </form>
+        <hr>
+        <p class="small text-center mb-0">
+          Belum punya akun? <a href="{{ url_for('register') }}">Daftar</a>
+        </p>
+        <p class="small text-center text-muted mt-2 mb-0">
+          Demo admin: <code>admin</code> / <code>admin123</code>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

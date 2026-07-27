@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Hasil{% endblock %}
+
+{% block content %}
+<div class="row align-items-end mb-4 g-3">
+  <div class="col-md-7">
+    <h1 class="page-title">Hasil pemungutan suara</h1>
+    <p class="page-desc">Perolehan sementara. Setiap suara tercatat di ledger dengan hash SHA-256.</p>
+  </div>
+  <div class="col-md-5">
+    <form method="GET" action="{{ url_for('index') }}" class="d-flex gap-2">
+      <input type="search" name="q" class="form-control" placeholder="Cari paslon…"
+             value="{{ search }}">
+      <button class="btn btn-outline-secondary" type="submit">Cari</button>
+      {% if search %}
+      <a href="{{ url_for('index') }}" class="btn btn-link">Reset</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+{% if not db_ok %}
+<div class="alert alert-danger">Database tidak dapat dijangkau. Coba lagi sebentar.</div>
+{% else %}
+
+{% if session.get('user_id') and session.get('role') == 'pemilih' and not session.get('has_voted') %}
+<div class="alert alert-vote-cta d-flex flex-wrap align-items-center justify-content-between gap-2">
+  <div>
+    <strong>Belum coblos</strong>
+    <span class="d-block small text-muted">Pilih paslon di halaman coblos. Satu akun = satu suara.</span>
+  </div>
+  <a href="{{ url_for('vote_page') }}" class="btn btn-primary btn-sm">Ke halaman coblos</a>
+</div>
+{% elif not session.get('user_id') %}
+<div class="panel d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+  <div>
+    <strong>Ingin memilih?</strong>
+    <span class="d-block small text-muted">Masuk atau daftar dulu sebagai pemilih.</span>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Masuk</a>
+    <a href="{{ url_for('register') }}" class="btn btn-outline-secondary btn-sm">Daftar</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Total suara</div>
+      <div class="stat-value">{{ total_votes }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Jumlah paslon</div>
+      <div class="stat-value">{{ candidates|length }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Status vote Anda</div>
+      <div class="stat-value" style="font-size:1.05rem">
+        {% if not session.get('user_id') %}
+          <span class="text-muted">Belum masuk</span>
+        {% elif session.get('role') == 'admin' %}
+          Admin
+        {% elif session.get('has_voted') %}
+          Sudah coblos
+        {% else %}
+          Belum coblos
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-label">Cek hash</div>
+      <div class="stat-value" style="font-size:1rem">
+        <a href="{{ url_for('verifikasi') }}">Buka verifikasi</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if candidates %}
+<div class="row g-3">
+  {% for c in candidates %}
+  {% set pct = (c.jumlah_suara / total_votes * 100) if total_votes > 0 else 0 %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card candidate-card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <div class="candidate-avatar">
+            {% if c.foto and c.foto != 'default.png' %}
+            <img src="{{ url_for('static', filename='img/' + c.foto) }}" alt="">
+            {% else %}
+            <i class="bi bi-person"></i>
+            {% endif %}
+          </div>
+          <div class="flex-grow-1">
+            <h2 class="h6 mb-1">{{ c.nama_paslon }}</h2>
+            <span class="text-muted small">Paslon #{{ c.id }}</span>
+          </div>
+        </div>
+        <p class="text-muted small mb-3 visi-preview">
+          {{ c.visi_misi[:140] }}{% if c.visi_misi|length > 140 %}…{% endif %}
+        </p>
+        <div class="d-flex justify-content-between small mb-1">
+          <span><strong>{{ c.jumlah_suara }}</strong> suara</span>
+          <span class="text-muted">{{ "%.1f"|format(pct) }}%</span>
+        </div>
+        <div class="progress" style="height:8px">
+          <div class="progress-bar bg-vote" style="width: {{ pct }}%"></div>
+        </div>
+        {% if session.get('user_id') and session.get('role') == 'pemilih' and not session.get('has_voted') %}
+        <form method="POST"
+              action="{{ url_for('vote_submit', candidate_id=c.id) }}"
+              class="vote-form mt-3"
+              data-paslon="{{ c.nama_paslon|e }}">
+          <button type="submit" class="btn btn-primary btn-sm w-100 vote-btn">
+            <span class="btn-label">Pilih paslon ini</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-muted text-center py-5">
+  {% if search %}Tidak ada hasil untuk “{{ search }}”.{% else %}Belum ada kandidat.{% endif %}
+</p>
+{% endif %}
+
+{% endif %}
+{% endblock %}

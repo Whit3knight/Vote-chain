@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Ledger{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+  <div>
+    <h1 class="page-title">Ledger blockchain</h1>
+    <p class="page-desc mb-0">Data suara immutable. Validasi dihitung ulang dari database, bukan mockup.</p>
+  </div>
+  <a href="{{ url_for('verifikasi') }}" class="btn btn-outline-primary btn-sm">Buka cek hash</a>
+</div>
+
+<div class="status-banner {% if is_valid %}is-ok{% else %}is-bad{% endif %} mb-3">
+  <div class="status-label">{% if is_valid %}Valid{% else %}Invalid{% endif %}</div>
+  <div class="status-text">{{ message }}</div>
+</div>
+
+<div class="panel">
+  <div class="table-responsive">
+    <table class="table table-block mb-0">
+      <thead>
+        <tr>
+          <th>Blok</th>
+          <th>Paslon</th>
+          <th>NPM</th>
+          <th>Waktu</th>
+          <th>Hash</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if blocks %}
+          {% for b in blocks %}
+          {% set d = details[loop.index0] if details and details|length > loop.index0 else none %}
+          <tr class="{% if d and not d.ok %}row-bad{% endif %}">
+            <td>#{{ b.block_index }}</td>
+            <td>{{ b.nama_paslon }} <span class="text-muted small">(#{{ b.candidate_id }})</span></td>
+            <td class="font-mono small">{{ b.voter_npm }}</td>
+            <td class="small text-muted">{{ b.timestamp[:19] }}</td>
+            <td>
+              <div class="hash-cell">
+                <code class="hash-short" title="{{ b.current_hash }}">{{ b.current_hash[:20] }}…</code>
+                <button type="button" class="btn btn-copy" data-copy="{{ b.current_hash }}">Salin</button>
+              </div>
+              <div class="hash-meta text-muted">
+                prev <code title="{{ b.prev_hash }}">{{ b.prev_hash[:12] }}…</code>
+                <button type="button" class="btn btn-copy btn-copy-xs" data-copy="{{ b.prev_hash }}">salin</button>
+              </div>
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary"
+                 href="{{ url_for('verifikasi', hash=b.current_hash) }}">Cek</a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">Belum ada blok.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

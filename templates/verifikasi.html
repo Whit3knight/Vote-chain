@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Cek hash{% endblock %}
+
+{% block content %}
+<div class="page-head mb-4">
+  <h1 class="page-title">Cek integritas suara</h1>
+  <p class="page-desc">
+    Sistem menghitung ulang SHA-256 tiap blok dari data di database, lalu membandingkannya
+    dengan hash yang tersimpan. Bukan tampilan palsu — perhitungan dilakukan di server saat halaman ini dibuka.
+  </p>
+</div>
+
+{# Ringkasan rantai #}
+<div class="status-banner {% if is_valid %}is-ok{% else %}is-bad{% endif %} mb-4">
+  <div class="status-label">{% if is_valid %}Rantai valid{% else %}Rantai bermasalah{% endif %}</div>
+  <div class="status-text">{{ message }}</div>
+</div>
+
+{# Form cek hash manual #}
+<div class="panel mb-4">
+  <h2 class="panel-title">Cek satu hash</h2>
+  <p class="panel-help">
+    Salin hash dari daftar di bawah (atau dari bukti coblos), tempel di sini, lalu cek.
+    Server akan mencari hash di ledger dan menghitung ulang SHA-256-nya.
+  </p>
+  <form method="POST" action="{{ url_for('verifikasi') }}" class="row g-2 align-items-end">
+    <div class="col-md-9">
+      <label class="form-label small text-muted mb-1" for="hashInput">Current hash (64 karakter hex)</label>
+      <input type="text" name="hash" id="hashInput" class="form-control font-mono"
+             placeholder="contoh: 9ea3562be2d17110…"
+             value="{{ query_hash }}" required autocomplete="off" spellcheck="false">
+    </div>
+    <div class="col-md-3 d-grid">
+      <button type="submit" class="btn btn-primary">Cek hash</button>
+    </div>
+  </form>
+
+  {% if lookup %}
+  <div class="lookup-result mt-3 {% if lookup.ok %}is-ok{% else %}is-bad{% endif %}">
+    <div class="fw-semibold mb-1">
+      {% if lookup.found %}
+        {% if lookup.ok %}✓ Hash valid{% else %}✗ Hash ditemukan, isi blok tidak valid{% endif %}
+      {% else %}
+        ✗ Hash tidak ditemukan
+      {% endif %}
+    </div>
+    <p class="mb-2 small">{{ lookup.message }}</p>
+    {% if lookup.found %}
+    <dl class="row small mb-0 detail-grid">
+      <dt class="col-sm-3">Blok</dt>
+      <dd class="col-sm-9">#{{ lookup.block_index }}</dd>
+      <dt class="col-sm-3">NPM pemilih</dt>
+      <dd class="col-sm-9">{{ lookup.voter_npm }}</dd>
+      <dt class="col-sm-3">Paslon</dt>
+      <dd class="col-sm-9">{{ lookup.nama_paslon or lookup.candidate_id }}</dd>
+      <dt class="col-sm-3">Hash di DB</dt>
+      <dd class="col-sm-9">
+        <code class="hash-full">{{ lookup.stored_hash }}</code>
+        <button type="button" class="btn btn-copy" data-copy="{{ lookup.stored_hash }}">Salin</button>
+      </dd>
+      <dt class="col-sm-3">Hash dihitung ulang</dt>
+      <dd class="col-sm-9">
+        <code class="hash-full">{{ lookup.expected_hash }}</code>
+        <button type="button" class="btn btn-copy" data-copy="{{ lookup.expected_hash }}">Salin</button>
+        {% if lookup.hash_ok %}
+        <span class="badge text-bg-success">cocok</span>
+        {% else %}
+        <span class="badge text-bg-danger">tidak cocok</span>
+        {% endif %}
+      </dd>
+      <dt class="col-sm-3">Payload</dt>
+      <dd class="col-sm-9"><code class="payload-box">{{ lookup.payload }}</code></dd>
+      <dt class="col-sm-3">Tautan rantai</dt>
+      <dd class="col-sm-9">{{ lookup.link_note }}</dd>
+    </dl>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{# Daftar blok + copy + cek #}
+<div class="panel">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h2 class="panel-title mb-0">Daftar blok</h2>
+    <span class="text-muted small">{{ blocks|length }} blok · klik Salin untuk copy hash penuh</span>
+  </div>
+
+  {% if details %}
+  <div class="table-responsive">
+    <table class="table table-block mb-0">
+      <thead>
+        <tr>
+          <th>Blok</th>
+          <th>Status</th>
+          <th>Paslon</th>
+          <th>NPM</th>
+          <th>Current hash</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in details %}
+        <tr class="{% if not d.ok %}row-bad{% endif %}">
+          <td class="text-nowrap">#{{ d.block_index }}</td>
+          <td>
+            {% if d.ok %}
+            <span class="dot-ok">valid</span>
+            {% else %}
+            <span class="dot-bad">invalid</span>
+            {% endif %}
+          </td>
+          <td>{{ d.nama_paslon or d.candidate_id }}</td>
+          <td class="font-mono small">{{ d.voter_npm }}</td>
+          <td>
+            <div class="hash-cell">
+              <code class="hash-short" title="{{ d.stored_hash }}">{{ d.stored_hash[:20] }}…</code>
+              <button type="button" class="btn btn-copy" data-copy="{{ d.stored_hash }}" title="Salin current hash">Salin</button>
+            </div>
+            <div class="hash-meta text-muted">
+              prev: <code class="hash-short" title="{{ d.prev_hash }}">{{ d.prev_hash[:12] }}…</code>
+              <button type="button" class="btn btn-copy btn-copy-xs" data-copy="{{ d.prev_hash }}" title="Salin prev hash">salin prev</button>
+            </div>
+          </td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-sm btn-outline-secondary"
+               href="{{ url_for('verifikasi', hash=d.stored_hash) }}">Cek</a>
+          </td>
+        </tr>
+        <tr class="detail-row">
+          <td colspan="6">
+            <details>
+              <summary class="small text-muted">Detail perhitungan blok #{{ d.block_index }}</summary>
+              <div class="detail-body small">
+                <div><span class="text-muted">Expected (recompute):</span>
+                  <code class="hash-full">{{ d.expected_hash }}</code>
+                  <button type="button" class="btn btn-copy" data-copy="{{ d.expected_hash }}">Salin</button>
+                  {% if d.hash_ok %}<span class="badge text-bg-success">= stored</span>
+                  {% else %}<span class="badge text-bg-danger">≠ stored</span>{% endif %}
+                </div>
+                <div class="mt-1"><span class="text-muted">Payload:</span>
+                  <code class="payload-box">{{ d.payload }}</code>
+                </div>
+                <div class="mt-1 text-muted">{{ d.link_note }} · {{ d.timestamp }}</div>
+              </div>
+            </details>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted mb-0">Belum ada suara. Ledger kosong.</p>
+  {% endif %}
+</div>
+
+<p class="formula-note mt-4 mb-0">
+  Rumus: <code>SHA256(index + prev_hash + candidate_id + voter_npm + timestamp)</code>
+  · dihitung di <code>blockchain.py</code> dengan modul <code>hashlib</code> Python, bukan digenerate di frontend.
+</p>
+{% endblock %}

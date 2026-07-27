@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Daftar{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6">
+    <div class="card auth-card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">Daftar pemilih</h1>
+        <p class="text-muted small mb-4">Satu akun = satu suara.</p>
+        <form method="POST" action="{{ url_for('register') }}">
+          <div class="mb-3">
+            <label class="form-label">NPM</label>
+            <input type="text" name="npm" class="form-control" required placeholder="22.11.1234">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nama lengkap</label>
+            <input type="text" name="nama" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required minlength="6">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Ulangi password</label>
+            <input type="password" name="password2" class="form-control" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Daftar</button>
+        </form>
+        <hr>
+        <p class="small text-center mb-0">
+          Sudah punya akun? <a href="{{ url_for('login') }}">Masuk</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

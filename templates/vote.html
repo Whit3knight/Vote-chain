@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Coblos{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <h1 class="page-title">Pilih paslon</h1>
+  <p class="page-desc">
+    Satu akun hanya bisa coblos sekali. Suara langsung disimpan dan di-hash (SHA-256).
+  </p>
+</div>
+
+{% if candidates %}
+<div class="row g-3">
+  {% for c in candidates %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card candidate-card h-100">
+      <div class="card-body d-flex flex-column">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="candidate-avatar">
+            {% if c.foto and c.foto != 'default.png' %}
+            <img src="{{ url_for('static', filename='img/' + c.foto) }}" alt="">
+            {% else %}
+            <i class="bi bi-person"></i>
+            {% endif %}
+          </div>
+          <div>
+            <h2 class="h6 mb-0">{{ c.nama_paslon }}</h2>
+            <span class="text-muted small">#{{ c.id }}</span>
+          </div>
+        </div>
+        <p class="text-muted small flex-grow-1">{{ c.visi_misi }}</p>
+        <form method="POST"
+              action="{{ url_for('vote_submit', candidate_id=c.id) }}"
+              class="vote-form"
+              data-paslon="{{ c.nama_paslon|e }}">
+          <button type="submit" class="btn btn-primary w-100 vote-btn">
+            <span class="btn-label">Pilih paslon ini</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-warning">Belum ada kandidat. Hubungi admin.</div>
+{% endif %}
+{% endblock %}
