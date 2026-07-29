@@ -56,7 +56,10 @@ def is_connected() -> bool:
         LAST_DB_ERROR = None
         return True
     except Exception as e:
-        LAST_DB_ERROR = str(e)
+        err_msg = str(e)
+        if "Cannot assign requested address" in err_msg or "2406:" in err_msg:
+            err_msg += " (SOLUSI: Vercel tidak mendukung koneksi IPv6 langsung port 5432. Gunakan Supabase Pooler URL / port 6543 pada Vercel Environment Variables)."
+        LAST_DB_ERROR = err_msg
         return False
     finally:
         if conn is not None:
