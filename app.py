@@ -813,6 +813,42 @@ def status():
     return res
 
 
+@app.route("/api/live-votes")
+def api_live_votes():
+    """
+    Endpoint JSON publik ultra-ringan untuk polling suara real-time & grafik live update.
+    """
+    try:
+        with get_db() as conn:
+            cur = get_cursor(conn)
+            cur.execute("""
+                SELECT id, nama_paslon, COALESCE(jumlah_suara, 0) AS jumlah_suara 
+                FROM candidates 
+                ORDER BY id ASC
+            """)
+            candidates = cur.fetchall()
+            cur.execute("SELECT COUNT(*) AS total FROM blockchain_ledger WHERE index > 0")
+            total_row = cur.fetchone()
+            total_votes = total_row["total"] if total_row else 0
+            cur.close()
+
+        return {
+            "status": "ok",
+            "total_votes": total_votes,
+            "candidates": [
+                {
+                    "id": c["id"],
+                    "nama_paslon": c["nama_paslon"],
+                    "jumlah_suara": c["jumlah_suara"],
+                    "percentage": round((c["jumlah_suara"] / total_votes * 100), 1) if total_votes > 0 else 0
+                }
+                for c in candidates
+            ]
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+
 @app.route("/init-db")
 def route_init_db():
     try:

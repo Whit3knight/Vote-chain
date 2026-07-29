@@ -3,52 +3,52 @@
 
 {% block content %}
 <div class="min-h-[65vh] flex items-center justify-center py-10 px-4">
-  <div class="max-w-md w-full space-y-6 bg-[#131822] border border-[#232B3A] p-7 rounded-xl shadow-md">
+  <div class="max-w-md w-full space-y-6 bg-slate-900/90 border border-slate-800 p-8 rounded-2xl shadow-xl backdrop-blur-xl">
     
-    <div class="text-center space-y-1.5">
-      <div class="w-10 h-10 rounded bg-[#EE0000] mx-auto flex items-center justify-center text-white shadow-md shadow-[#EE0000]/20">
-        <i data-lucide="lock" class="w-5 h-5"></i>
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 mx-auto flex items-center justify-center text-emerald-400">
+        <i data-lucide="lock" class="w-6 h-6"></i>
       </div>
-      <h2 class="font-heading font-extrabold text-xl text-white tracking-tight pt-2">Otentikasi Akun</h2>
-      <p class="text-xs text-slate-400">Masuk dengan Nomor Pokok Mahasiswa (NPM) atau akun Admin</p>
+      <h2 class="font-heading font-extrabold text-2xl text-white tracking-tight pt-1">Masuk ke Akun Anda</h2>
+      <p class="text-xs text-slate-400">Gunakan Nomor Pokok Mahasiswa (NPM) atau kredensial Admin</p>
     </div>
 
     <!-- Login Form -->
     <form method="POST" action="{{ url_for('login') }}" class="space-y-4">
       <div>
-        <label for="npm" class="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+        <label for="npm" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
           NPM / ID Pengguna
         </label>
         <div class="relative">
-          <i data-lucide="user" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
           <input id="npm" name="npm" type="text" required 
                  placeholder="Contoh: 24.83.1107 atau admin"
-                 class="w-full pl-9 pr-3 py-2 bg-[#19202C] border border-[#232B3A] rounded-md text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#EE0000] focus:ring-1 focus:ring-[#EE0000] transition-all">
+                 class="w-full pl-10 pr-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
         </div>
       </div>
 
       <div>
-        <label for="password" class="block text-xs font-mono font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+        <label for="password" class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
           Kata Sandi
         </label>
         <div class="relative">
-          <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          <i data-lucide="key-round" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
           <input id="password" name="password" type="password" required 
                  placeholder="••••••••"
-                 class="w-full pl-9 pr-3 py-2 bg-[#19202C] border border-[#232B3A] rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#EE0000] focus:ring-1 focus:ring-[#EE0000] transition-all">
+                 class="w-full pl-10 pr-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
         </div>
       </div>
 
-      <button type="submit" class="w-full py-2.5 bg-[#EE0000] hover:bg-[#CC0000] text-white rounded-md text-xs font-bold shadow-sm transition-all flex items-center justify-center space-x-2">
+      <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-extrabold shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center space-x-2">
         <i data-lucide="log-in" class="w-4 h-4"></i>
         <span>Masuk ke Platform</span>
       </button>
     </form>
 
-    <div class="text-center pt-3 border-t border-[#232B3A]">
+    <div class="text-center pt-4 border-t border-slate-800">
       <p class="text-xs text-slate-400">
         Belum memiliki akun pemilih? 
-        <a href="{{ url_for('register') }}" class="font-bold text-red-400 hover:text-red-300 transition-colors">Daftar sekarang</a>
+        <a href="{{ url_for('register') }}" class="font-bold text-emerald-400 hover:text-emerald-300 transition-colors">Daftar Akun Baru</a>
       </p>
     </div>
 
