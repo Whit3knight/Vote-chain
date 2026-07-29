@@ -633,14 +633,14 @@ def vote_submit(candidate_id: int):
 # ── Verifikasi Blockchain (REAL: recompute SHA-256 di server) ────────────────
 
 @app.route("/verifikasi", methods=["GET", "POST"])
+@login_required
 def verifikasi():
     """
-    Validasi hash sungguhan di backend:
-    - Ambil semua blok dari Supabase
+    Validasi hash sungguhan di backend dengan proteksi privasi pemilih:
+    - Hanya user yang login yang dapat mengakses menu ini
     - Hitung ulang SHA-256 tiap blok (hashlib)
-    - Bandingkan dengan current_hash di DB
-    - Cek prev_hash mengunci rantai
-    Opsional: POST/GET ?hash=... untuk cek satu hash yang di-paste.
+    - Pilihan paslon milik pemilih lain disamarkan (🔒 RAHASIA) demi kerahasiaan suara
+    - Admin dapat melihat audit penuh
     """
     blocks: list[dict] = []
     details: list[dict] = []
@@ -648,6 +648,9 @@ def verifikasi():
     message = ""
     lookup = None
     query_hash = ""
+
+    user_role = session.get("role")
+    user_npm = session.get("npm")
 
     if request.method == "POST":
         query_hash = (request.form.get("hash") or "").strip()
@@ -663,7 +666,6 @@ def verifikasi():
             if query_hash:
                 lookup = find_block_by_hash(blocks, query_hash)
                 if lookup is None:
-                    # Hash tidak ada di ledger
                     lookup = {
                         "found": False,
                         "query": query_hash,
@@ -686,6 +688,20 @@ def verifikasi():
                             f"Hash ditemukan di blok #{lookup['block_index']}, "
                             f"tetapi data blok TIDAK lolos validasi (mungkin dimanipulasi)."
                         )
+
+            # Privasi Suara: Samarkan pilihan paslon orang lain jika bukan admin & bukan suara sendiri
+            if user_role != "admin":
+                for b in blocks:
+                    if b.get("voter_npm") != user_npm:
+                        b["nama_paslon"] = "🔒 RAHASIA (Privasi Pemilih)"
+                        b["candidate_id"] = "🔒 RAHASIA"
+
+                if lookup and lookup.get("found"):
+                    if lookup.get("voter_npm") != user_npm:
+                        lookup["nama_paslon"] = "🔒 RAHASIA (Privasi Pemilih)"
+                        lookup["candidate_id"] = "🔒 RAHASIA"
+                        lookup["payload"] = "🔒 Payload disamarkan demi kerahasiaan suara"
+
     except Exception as e:
         is_valid = False
         message = f"Gagal membaca / memvalidasi ledger: {e}"
@@ -702,8 +718,12 @@ def verifikasi():
 
 
 @app.route("/api/cek-hash", methods=["GET", "POST"])
+@login_required
 def api_cek_hash():
-    """API JSON: cek satu hash (untuk tombol 'Cek' di baris ledger)."""
+    """API JSON: cek satu hash (untuk tombol 'Cek' di baris ledger) dengan proteksi privasi."""
+    user_role = session.get("role")
+    user_npm = session.get("npm")
+
     if request.method == "POST":
         query_hash = (
             (request.get_json(silent=True) or {}).get("hash")
@@ -727,6 +747,17 @@ def api_cek_hash():
                 "query": query_hash,
                 "message": "Hash tidak ada di ledger.",
             }
+
+        # Samarkan data suara orang lain untuk non-admin
+        candidate_name = result.get("nama_paslon")
+        candidate_id = result.get("candidate_id")
+        payload = result.get("payload")
+
+        if user_role != "admin" and result.get("voter_npm") != user_npm:
+            candidate_name = "🔒 RAHASIA (Privasi Pemilih)"
+            candidate_id = "🔒 RAHASIA"
+            payload = "🔒 Payload disamarkan demi kerahasiaan suara"
+
         return {
             "ok": result["ok"],
             "found": True,
@@ -737,10 +768,10 @@ def api_cek_hash():
             "stored_hash": result["stored_hash"],
             "expected_hash": result["expected_hash"],
             "voter_npm": result["voter_npm"],
-            "candidate_id": result["candidate_id"],
-            "nama_paslon": result.get("nama_paslon"),
+            "candidate_id": candidate_id,
+            "nama_paslon": candidate_name,
             "timestamp": result["timestamp"],
-            "payload": result["payload"],
+            "payload": payload,
             "message": (
                 "Hash valid."
                 if result["ok"]

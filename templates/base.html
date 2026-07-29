@@ -134,11 +134,13 @@
             <span>Dashboard</span>
           </a>
 
+          {% if session.get('user_id') %}
           <a href="{{ url_for('verifikasi') }}" 
              class="px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 {% if request.endpoint == 'verifikasi' %}bg-blue-600/10 text-blue-400 border border-blue-500/30 shadow-sm{% else %}text-slate-300 hover:text-white hover:bg-slate-800/60{% endif %}">
             <i data-lucide="shield-search" class="w-4 h-4"></i>
             <span>Cek Hash</span>
           </a>
+          {% endif %}
 
           {% if session.get('role') == 'pemilih' and not session.get('has_voted') %}
           <a href="{{ url_for('vote_page') }}" 
@@ -209,7 +211,9 @@
     <!-- Mobile Dropdown Navigation -->
     <div id="mobile-menu" class="hidden md:hidden border-b border-slate-800 bg-[#0B0F19] px-4 pt-2 pb-4 space-y-2">
       <a href="{{ url_for('index') }}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-200 hover:bg-slate-800">Dashboard</a>
+      {% if session.get('user_id') %}
       <a href="{{ url_for('verifikasi') }}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-200 hover:bg-slate-800">Cek Hash</a>
+      {% endif %}
       {% if session.get('role') == 'pemilih' and not session.get('has_voted') %}
       <a href="{{ url_for('vote_page') }}" class="block px-3 py-2 rounded-lg text-base font-medium text-white bg-blue-600">Coblos Sekarang</a>
       {% endif %}
