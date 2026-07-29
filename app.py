@@ -27,7 +27,7 @@ from blockchain import (
     find_block_by_hash,
     validate_chain,
 )
-from db import get_cursor, get_db, init_db, is_connected
+from db import LAST_DB_ERROR, get_cursor, get_db, init_db, is_connected
 
 load_dotenv()
 
@@ -763,12 +763,16 @@ def ledger():
 
 @app.route("/status")
 def status():
+    from db import LAST_DB_ERROR
     ok = is_connected()
-    return {
+    res = {
         "database": "online" if ok else "offline",
         "provider": "Supabase PostgreSQL",
         "connected": ok,
     }
+    if not ok and LAST_DB_ERROR:
+        res["error_detail"] = LAST_DB_ERROR
+    return res
 
 
 # ── Boot ─────────────────────────────────────────────────────────────────────

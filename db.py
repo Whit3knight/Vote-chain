@@ -20,11 +20,18 @@ DATABASE_URL = os.getenv(
     "postgresql://postgres:Pemrogaman-web@db.ldtnlgtuizihzpspitin.supabase.co:5432/postgres",
 )
 
+LAST_DB_ERROR = None
+
 
 def get_connection():
     """Membuka koneksi baru ke Supabase PostgreSQL (timeout & keepalive anti-stuck)."""
+    db_url = DATABASE_URL
+    if ("supabase.co" in db_url or "supabase.com" in db_url) and "sslmode" not in db_url:
+        separator = "&" if "?" in db_url else "?"
+        db_url += f"{separator}sslmode=require"
+
     conn = psycopg2.connect(
-        DATABASE_URL,
+        db_url,
         connect_timeout=15,
         keepalives=1,
         keepalives_idle=30,
@@ -38,6 +45,7 @@ def get_connection():
 
 def is_connected() -> bool:
     """Cek apakah server database online dan bisa diakses."""
+    global LAST_DB_ERROR
     conn = None
     try:
         conn = get_connection()
@@ -45,8 +53,10 @@ def is_connected() -> bool:
         cur.execute("SELECT 1")
         cur.fetchone()
         cur.close()
+        LAST_DB_ERROR = None
         return True
-    except Exception:
+    except Exception as e:
+        LAST_DB_ERROR = str(e)
         return False
     finally:
         if conn is not None:
