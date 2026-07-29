@@ -1,161 +1,190 @@
 {% extends "base.html" %}
-{% block title %}Cek hash{% endblock %}
+{% block title %}Inspektur & Verifikasi Hash SHA-256{% endblock %}
 
 {% block content %}
-<div class="page-head mb-4">
-  <h1 class="page-title">Cek integritas suara</h1>
-  <p class="page-desc">
-    Sistem menghitung ulang SHA-256 tiap blok dari data di database, lalu membandingkannya
-    dengan hash yang tersimpan. Bukan tampilan palsu — perhitungan dilakukan di server saat halaman ini dibuka.
-  </p>
-</div>
-
-{# Ringkasan rantai #}
-<div class="status-banner {% if is_valid %}is-ok{% else %}is-bad{% endif %} mb-4">
-  <div class="status-label">{% if is_valid %}Rantai valid{% else %}Rantai bermasalah{% endif %}</div>
-  <div class="status-text">{{ message }}</div>
-</div>
-
-{# Form cek hash manual #}
-<div class="panel mb-4">
-  <h2 class="panel-title">Cek satu hash</h2>
-  <p class="panel-help">
-    Salin hash dari daftar di bawah (atau dari bukti coblos), tempel di sini, lalu cek.
-    Server akan mencari hash di ledger dan menghitung ulang SHA-256-nya.
-  </p>
-  <form method="POST" action="{{ url_for('verifikasi') }}" class="row g-2 align-items-end">
-    <div class="col-md-9">
-      <label class="form-label small text-muted mb-1" for="hashInput">Current hash (64 karakter hex)</label>
-      <input type="text" name="hash" id="hashInput" class="form-control font-mono"
-             placeholder="contoh: 9ea3562be2d17110…"
-             value="{{ query_hash }}" required autocomplete="off" spellcheck="false">
+<div class="space-y-8">
+  
+  <!-- Page Title & Chain Status Header -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-slate-900/90 border border-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl backdrop-blur-xl">
+    <div class="space-y-2">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-mono">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        <span>Cryptographic Audit Protocol</span>
+      </div>
+      <h1 class="font-heading font-extrabold text-2xl sm:text-3xl text-white tracking-tight">
+        Verifikasi Rantai Ledger & Hash SHA-256
+      </h1>
+      <p class="text-slate-400 text-xs sm:text-sm max-w-2xl">
+        Server secara langsung melakukan penghitungan ulang <em>(re-compute)</em> seluruh blok di Supabase PostgreSQL menggunakan algoritma SHA-256 untuk mendeteksi manipulasi database.
+      </p>
     </div>
-    <div class="col-md-3 d-grid">
-      <button type="submit" class="btn btn-primary">Cek hash</button>
-    </div>
-  </form>
 
-  {% if lookup %}
-  <div class="lookup-result mt-3 {% if lookup.ok %}is-ok{% else %}is-bad{% endif %}">
-    <div class="fw-semibold mb-1">
+    <!-- Chain Status Banner Badge -->
+    <div class="p-5 rounded-2xl border shadow-lg flex items-center space-x-4 flex-shrink-0
+                {% if is_valid %}bg-emerald-500/10 border-emerald-500/30 text-emerald-300{% else %}bg-rose-500/10 border-rose-500/30 text-rose-300{% endif %}">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl
+                  {% if is_valid %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/40{% else %}bg-rose-500/20 text-rose-400 border border-rose-500/40{% endif %}">
+        {% if is_valid %}<i data-lucide="check-circle-2" class="w-6 h-6"></i>{% else %}<i data-lucide="alert-triangle" class="w-6 h-6"></i>{% endif %}
+      </div>
+      <div>
+        <div class="text-xs uppercase font-mono font-bold tracking-wider opacity-80">Status Integrasi Chain</div>
+        <div class="font-heading font-extrabold text-base sm:text-lg">
+          {% if is_valid %}Rantai Valid & Utuh{% else %}Rantai Invalid (Terindikasi Manipulasi){% endif %}
+        </div>
+        <div class="text-[11px] opacity-80 font-mono mt-0.5">{{ message }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instant Hash Lookup Search Bar -->
+  <div class="bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </div>
+      <div>
+        <h2 class="font-heading font-bold text-base text-white">Inspeksi Satu Hash Spasial</h2>
+        <p class="text-xs text-slate-400">Masukkan 64 digit karakter hex <code>current_hash</code> dari bukti coblos untuk memeriksa statusnya</p>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('verifikasi') }}" class="flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-grow">
+        <i data-lucide="key" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input type="text" name="hash" value="{{ query_hash }}" required
+               placeholder="Contoh: 2b250056419c5332e6367152aa7c271acb9e2459206114a1c41ca1d885cbbbb9"
+               class="w-full pl-10 pr-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+      </div>
+      <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center space-x-2 whitespace-nowrap">
+        <i data-lucide="scan" class="w-4 h-4"></i>
+        <span>Inspeksi Hash API</span>
+      </button>
+      {% if query_hash %}
+      <a href="{{ url_for('verifikasi') }}" class="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl text-center">
+        Reset
+      </a>
+      {% endif %}
+    </form>
+
+    <!-- Hash Inspection Result Card (If query active) -->
+    {% if lookup %}
+    <div class="mt-4 p-5 rounded-xl border text-xs space-y-3 backdrop-blur-md
+                {% if lookup.found and lookup.ok %}bg-emerald-500/10 border-emerald-500/30 text-slate-200
+                {% elif lookup.found %}bg-amber-500/10 border-amber-500/30 text-slate-200
+                {% else %}bg-rose-500/10 border-rose-500/30 text-slate-200{% endif %}">
+      <div class="flex items-center justify-between font-mono border-b border-slate-700/50 pb-2">
+        <span class="font-bold text-white flex items-center space-x-2">
+          <i data-lucide="file-search" class="w-4 h-4 text-blue-400"></i>
+          <span>Hasil Pencarian: {{ lookup.query[:16] }}…</span>
+        </span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase
+                     {% if lookup.found and lookup.ok %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/30
+                     {% else %}bg-rose-500/20 text-rose-300 border border-rose-500/30{% endif %}">
+          {% if lookup.found and lookup.ok %}Lolos SHA-256 Audit{% elif lookup.found %}Hash Dimanipulasi{% else %}Hash Tidak Ditemukan{% endif %}
+        </span>
+      </div>
+      
+      <p class="text-xs text-slate-300">{{ lookup.message }}</p>
+
       {% if lookup.found %}
-        {% if lookup.ok %}✓ Hash valid{% else %}✗ Hash ditemukan, isi blok tidak valid{% endif %}
-      {% else %}
-        ✗ Hash tidak ditemukan
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 font-mono text-[11px] bg-slate-950/60 p-3 rounded-lg border border-slate-800">
+        <div><span class="text-slate-400">Nomor Blok:</span> <strong class="text-white">#{{ lookup.block_index }}</strong></div>
+        <div><span class="text-slate-400">NPM Pemilih:</span> <strong class="text-blue-400">{{ lookup.voter_npm }}</strong></div>
+        <div><span class="text-slate-400">Paslon Dipilih:</span> <strong class="text-indigo-400">{{ lookup.nama_paslon if lookup.nama_paslon else lookup.candidate_id }}</strong></div>
+        <div><span class="text-slate-400">Timestamp UTC:</span> <span class="text-slate-300">{{ lookup.timestamp }}</span></div>
+        <div class="md:col-span-2 overflow-x-auto"><span class="text-slate-400">Stored Hash:</span> <code class="text-emerald-400">{{ lookup.stored_hash }}</code></div>
+        <div class="md:col-span-2 overflow-x-auto"><span class="text-slate-400">Expected Hash:</span> <code class="text-blue-400">{{ lookup.expected_hash }}</code></div>
+        <div class="md:col-span-2 overflow-x-auto"><span class="text-slate-400">Payload String:</span> <code class="text-slate-400">{{ lookup.payload }}</code></div>
+      </div>
       {% endif %}
     </div>
-    <p class="mb-2 small">{{ lookup.message }}</p>
-    {% if lookup.found %}
-    <dl class="row small mb-0 detail-grid">
-      <dt class="col-sm-3">Blok</dt>
-      <dd class="col-sm-9">#{{ lookup.block_index }}</dd>
-      <dt class="col-sm-3">NPM pemilih</dt>
-      <dd class="col-sm-9">{{ lookup.voter_npm }}</dd>
-      <dt class="col-sm-3">Paslon</dt>
-      <dd class="col-sm-9">{{ lookup.nama_paslon or lookup.candidate_id }}</dd>
-      <dt class="col-sm-3">Hash di DB</dt>
-      <dd class="col-sm-9">
-        <code class="hash-full">{{ lookup.stored_hash }}</code>
-        <button type="button" class="btn btn-copy" data-copy="{{ lookup.stored_hash }}">Salin</button>
-      </dd>
-      <dt class="col-sm-3">Hash dihitung ulang</dt>
-      <dd class="col-sm-9">
-        <code class="hash-full">{{ lookup.expected_hash }}</code>
-        <button type="button" class="btn btn-copy" data-copy="{{ lookup.expected_hash }}">Salin</button>
-        {% if lookup.hash_ok %}
-        <span class="badge text-bg-success">cocok</span>
-        {% else %}
-        <span class="badge text-bg-danger">tidak cocok</span>
-        {% endif %}
-      </dd>
-      <dt class="col-sm-3">Payload</dt>
-      <dd class="col-sm-9"><code class="payload-box">{{ lookup.payload }}</code></dd>
-      <dt class="col-sm-3">Tautan rantai</dt>
-      <dd class="col-sm-9">{{ lookup.link_note }}</dd>
-    </dl>
     {% endif %}
   </div>
-  {% endif %}
-</div>
 
-{# Daftar blok + copy + cek #}
-<div class="panel">
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-    <h2 class="panel-title mb-0">Daftar blok</h2>
-    <span class="text-muted small">{{ blocks|length }} blok · klik Salin untuk copy hash penuh</span>
+  <!-- Complete Blockchain Ledger Interactive Table -->
+  <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="font-heading font-bold text-xl text-white">Struktur Blok & Tautan Hash Rantai</h2>
+        <p class="text-xs text-slate-400">Daftar kronologis seluruh transaksi voting di database Supabase</p>
+      </div>
+      <span class="px-3 py-1 bg-slate-800 text-slate-300 rounded-lg text-xs font-mono">
+        Total Blok: {{ blocks|length }}
+      </span>
+    </div>
+
+    {% if blocks %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400 bg-slate-950/60">
+            <th class="py-3 px-4">Blok #</th>
+            <th class="py-3 px-4">Timestamp (UTC)</th>
+            <th class="py-3 px-4">Kandidat</th>
+            <th class="py-3 px-4">NPM Pemilih</th>
+            <th class="py-3 px-4">Current Hash SHA-256</th>
+            <th class="py-3 px-4 text-center">Status Audit</th>
+            <th class="py-3 px-4 text-right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/60 text-xs font-mono">
+          {% for b in blocks %}
+          {% set det = details[loop.index0] if loop.index0 < details|length else None %}
+          <tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="py-3 px-4">
+              <span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
+                #{{ b.block_index }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-slate-400 text-[11px]">
+              {{ b.timestamp[:19].replace('T', ' ') }}
+            </td>
+            <td class="py-3 px-4 font-sans font-medium text-white">
+              {{ b.nama_paslon if b.nama_paslon else ('Paslon #' ~ b.candidate_id) }}
+            </td>
+            <td class="py-3 px-4 text-indigo-400 font-bold">
+              {{ b.voter_npm }}
+            </td>
+            <td class="py-3 px-4">
+              <span class="text-slate-300" title="{{ b.current_hash }}">
+                {{ b.current_hash[:16] }}…{{ b.current_hash[-8:] }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              {% if det and det.ok %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <i data-lucide="check" class="w-3 h-3 mr-1"></i> Valid
+              </span>
+              {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                <i data-lucide="x" class="w-3 h-3 mr-1"></i> Invalid
+              </span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right space-x-2">
+              <button onclick="copyToClipboard('{{ b.current_hash }}')" 
+                      class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] transition-colors"
+                      title="Salin hash lengkap ke clipboard">
+                Salin
+              </button>
+              <a href="{{ url_for('verifikasi') }}?hash={{ b.current_hash }}" 
+                 class="px-2.5 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 rounded text-[11px] border border-blue-500/30 transition-colors">
+                Cek
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12 bg-slate-950/40 rounded-xl">
+      <i data-lucide="database" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
+      <p class="text-xs text-slate-400">Belum ada blok yang tercatat di ledger blockchain.</p>
+    </div>
+    {% endif %}
+
   </div>
 
-  {% if details %}
-  <div class="table-responsive">
-    <table class="table table-block mb-0">
-      <thead>
-        <tr>
-          <th>Blok</th>
-          <th>Status</th>
-          <th>Paslon</th>
-          <th>NPM</th>
-          <th>Current hash</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for d in details %}
-        <tr class="{% if not d.ok %}row-bad{% endif %}">
-          <td class="text-nowrap">#{{ d.block_index }}</td>
-          <td>
-            {% if d.ok %}
-            <span class="dot-ok">valid</span>
-            {% else %}
-            <span class="dot-bad">invalid</span>
-            {% endif %}
-          </td>
-          <td>{{ d.nama_paslon or d.candidate_id }}</td>
-          <td class="font-mono small">{{ d.voter_npm }}</td>
-          <td>
-            <div class="hash-cell">
-              <code class="hash-short" title="{{ d.stored_hash }}">{{ d.stored_hash[:20] }}…</code>
-              <button type="button" class="btn btn-copy" data-copy="{{ d.stored_hash }}" title="Salin current hash">Salin</button>
-            </div>
-            <div class="hash-meta text-muted">
-              prev: <code class="hash-short" title="{{ d.prev_hash }}">{{ d.prev_hash[:12] }}…</code>
-              <button type="button" class="btn btn-copy btn-copy-xs" data-copy="{{ d.prev_hash }}" title="Salin prev hash">salin prev</button>
-            </div>
-          </td>
-          <td class="text-end text-nowrap">
-            <a class="btn btn-sm btn-outline-secondary"
-               href="{{ url_for('verifikasi', hash=d.stored_hash) }}">Cek</a>
-          </td>
-        </tr>
-        <tr class="detail-row">
-          <td colspan="6">
-            <details>
-              <summary class="small text-muted">Detail perhitungan blok #{{ d.block_index }}</summary>
-              <div class="detail-body small">
-                <div><span class="text-muted">Expected (recompute):</span>
-                  <code class="hash-full">{{ d.expected_hash }}</code>
-                  <button type="button" class="btn btn-copy" data-copy="{{ d.expected_hash }}">Salin</button>
-                  {% if d.hash_ok %}<span class="badge text-bg-success">= stored</span>
-                  {% else %}<span class="badge text-bg-danger">≠ stored</span>{% endif %}
-                </div>
-                <div class="mt-1"><span class="text-muted">Payload:</span>
-                  <code class="payload-box">{{ d.payload }}</code>
-                </div>
-                <div class="mt-1 text-muted">{{ d.link_note }} · {{ d.timestamp }}</div>
-              </div>
-            </details>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <p class="text-muted mb-0">Belum ada suara. Ledger kosong.</p>
-  {% endif %}
 </div>
-
-<p class="formula-note mt-4 mb-0">
-  Rumus: <code>SHA256(index + prev_hash + candidate_id + voter_npm + timestamp)</code>
-  · dihitung di <code>blockchain.py</code> dengan modul <code>hashlib</code> Python, bukan digenerate di frontend.
-</p>
 {% endblock %}

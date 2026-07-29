@@ -1,125 +1,73 @@
 /**
- * VoteChain client helpers:
- * - konfirmasi coblos/hapus
- * - anti double-submit
- * - salin hash ke clipboard
+ * VoteChain Enterprise Frontend JavaScript Helper
  */
 
-function confirmDelete(nama) {
-  return confirm(
-    'Yakin ingin menghapus kandidat "' + nama + '"?\nTindakan ini tidak dapat dibatalkan.'
-  );
-}
-
-function confirmVote(nama) {
-  return confirm(
-    'Yakin memilih "' + nama + '"?\n\n' +
-      "Suara akan dicatat ke database dan di-hash. Setelah ini tidak bisa diubah."
-  );
-}
-
-function showToast(message, ok) {
-  var host = document.getElementById("toast-host");
-  if (!host || typeof bootstrap === "undefined") {
-    return;
-  }
-  var el = document.createElement("div");
-  el.className =
-    "toast align-items-center border-0 text-bg-" + (ok ? "dark" : "danger");
-  el.setAttribute("role", "status");
-  el.innerHTML =
-    '<div class="d-flex"><div class="toast-body">' +
-    message +
-    '</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
-  host.appendChild(el);
-  var t = new bootstrap.Toast(el, { delay: 2200 });
-  t.show();
-  el.addEventListener("hidden.bs.toast", function () {
-    el.remove();
-  });
-}
-
-function copyText(text, btn) {
+// Clipboard copy utility with interactive feedback toast
+function copyToClipboard(text) {
   if (!text) return;
-  var done = function () {
-    if (btn) {
-      var prev = btn.textContent;
-      btn.textContent = "Tersalin";
-      setTimeout(function () {
-        btn.textContent = prev;
-      }, 1200);
-    }
-    showToast("Hash disalin ke clipboard", true);
-  };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(function () {
-      fallbackCopy(text, done);
-    });
-  } else {
-    fallbackCopy(text, done);
-  }
-}
-
-function fallbackCopy(text, done) {
-  var ta = document.createElement("textarea");
-  ta.value = text;
-  ta.setAttribute("readonly", "");
-  ta.style.position = "fixed";
-  ta.style.left = "-9999px";
-  document.body.appendChild(ta);
-  ta.select();
-  try {
+  
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Hash SHA-256 berhasil disalin ke clipboard!", "success");
+  }).catch(() => {
+    // Fallback for older browsers
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
     document.execCommand("copy");
-    done();
-  } catch (e) {
-    showToast("Gagal menyalin", false);
-  }
-  document.body.removeChild(ta);
+    document.body.removeChild(textarea);
+    showToast("Hash berhasil disalin!", "success");
+  });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll(".alert-dismissible").forEach(function (el) {
-    setTimeout(function () {
-      var btn = el.querySelector(".btn-close");
-      if (btn) btn.click();
-    }, 7000);
-  });
+// Toast Notification Manager
+function showToast(message, type = "info") {
+  const host = document.getElementById("toast-host");
+  if (!host) return;
 
-  document.querySelectorAll("form.vote-form").forEach(function (form) {
-    form.addEventListener("submit", function (e) {
-      var paslon = form.getAttribute("data-paslon") || "paslon ini";
-      if (!confirmVote(paslon)) {
+  const toast = document.createElement("div");
+  const bgClass = type === "success" ? "bg-emerald-600 text-white" : type === "danger" ? "bg-rose-600 text-white" : "bg-blue-600 text-white";
+  
+  toast.className = `p-4 rounded-xl shadow-2xl ${bgClass} text-xs font-semibold flex items-center space-x-2 toast-slide-in backdrop-blur-md`;
+  toast.innerHTML = `
+    <i data-lucide="${type === 'success' ? 'check-circle' : 'info'}" class="w-4 h-4"></i>
+    <span>${message}</span>
+  `;
+
+  host.appendChild(toast);
+  if (window.lucide) lucide.createIcons();
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+    toast.style.transition = "all 0.3s ease";
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+// Vote Form Handler (Anti Double-Click & Confirmation Modal)
+document.addEventListener("DOMContentLoaded", () => {
+  const voteForms = document.querySelectorAll(".vote-form");
+
+  voteForms.forEach(form => {
+    form.addEventListener("submit", (e) => {
+      const paslon = form.getAttribute("data-paslon") || "kandidat ini";
+      
+      const confirmVote = confirm(`Apakah Anda yakin ingin memberikan suara untuk ${paslon}?\n\nPilihan suara bersifat permanen dan tidak dapat diubah setelah dicatat ke blockchain.`);
+      
+      if (!confirmVote) {
         e.preventDefault();
         return false;
       }
-      var btn = form.querySelector(".vote-btn");
-      if (btn) {
+
+      // Disable all vote buttons to prevent double submission
+      const allBtns = document.querySelectorAll(".vote-btn");
+      allBtns.forEach(btn => {
         btn.disabled = true;
-        btn.classList.add("disabled");
-        var label = btn.querySelector(".btn-label");
-        if (label) label.textContent = "Menyimpan…";
-        else btn.textContent = "Menyimpan…";
-      }
-      document.querySelectorAll("form.vote-form .vote-btn").forEach(function (other) {
-        other.disabled = true;
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+        const label = btn.querySelector(".btn-label");
+        if (label) label.textContent = "Menyimpan ke Blockchain...";
       });
-      return true;
     });
   });
-
-  // Tombol salin hash
-  document.body.addEventListener("click", function (e) {
-    var btn = e.target.closest("[data-copy]");
-    if (!btn) return;
-    e.preventDefault();
-    copyText(btn.getAttribute("data-copy"), btn);
-  });
-
-  // Prefill form cek hash jika URL punya ?hash=
-  var params = new URLSearchParams(window.location.search);
-  var h = params.get("hash");
-  var input = document.getElementById("hashInput");
-  if (h && input && !input.value) {
-    input.value = h;
-  }
 });

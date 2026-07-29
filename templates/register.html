@@ -1,38 +1,85 @@
 {% extends "base.html" %}
-{% block title %}Daftar{% endblock %}
+{% block title %}Daftar Akun Pemilih{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card auth-card shadow-sm">
-      <div class="card-body p-4">
-        <h1 class="h4 mb-1">Daftar pemilih</h1>
-        <p class="text-muted small mb-4">Satu akun = satu suara.</p>
-        <form method="POST" action="{{ url_for('register') }}">
-          <div class="mb-3">
-            <label class="form-label">NPM</label>
-            <input type="text" name="npm" class="form-control" required placeholder="22.11.1234">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Nama lengkap</label>
-            <input type="text" name="nama" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" required minlength="6">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Ulangi password</label>
-            <input type="password" name="password2" class="form-control" required minlength="6">
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Daftar</button>
-        </form>
-        <hr>
-        <p class="small text-center mb-0">
-          Sudah punya akun? <a href="{{ url_for('login') }}">Masuk</a>
-        </p>
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8 bg-slate-900/90 border border-slate-800 p-8 rounded-2xl shadow-2xl relative overflow-hidden backdrop-blur-xl">
+    
+    <div class="absolute -top-20 -right-20 w-48 h-48 bg-purple-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+    <div class="text-center space-y-2">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 p-0.5 mx-auto shadow-lg shadow-purple-500/20">
+        <div class="w-full h-full bg-[#0B0F19] rounded-[14px] flex items-center justify-center">
+          <i data-lucide="user-plus" class="w-6 h-6 text-purple-400"></i>
+        </div>
       </div>
+      <h2 class="font-heading font-extrabold text-2xl text-white tracking-tight">Registrasi Pemilih</h2>
+      <p class="text-xs text-slate-400">Daftarkan akun mahasiswa untuk menggunakan hak pilih Anda</p>
     </div>
+
+    <!-- Registration Form -->
+    <form method="POST" action="{{ url_for('register') }}" class="mt-8 space-y-4">
+      <div>
+        <label for="npm" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+          NPM Mahasiswa
+        </label>
+        <div class="relative">
+          <i data-lucide="hash" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="npm" name="npm" type="text" required 
+                 placeholder="Contoh: 24.83.1107"
+                 class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono">
+        </div>
+      </div>
+
+      <div>
+        <label for="nama" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+          Nama Lengkap
+        </label>
+        <div class="relative">
+          <i data-lucide="user" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="nama" name="nama" type="text" required 
+                 placeholder="Nama sesuai kartu mahasiswa"
+                 class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+        </div>
+      </div>
+
+      <div>
+        <label for="password" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+          Kata Sandi (Min 6 Karakter)
+        </label>
+        <div class="relative">
+          <i data-lucide="key-round" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="password" name="password" type="password" minlength="6" required 
+                 placeholder="••••••••"
+                 class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+        </div>
+      </div>
+
+      <div>
+        <label for="password2" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+          Konfirmasi Kata Sandi
+        </label>
+        <div class="relative">
+          <i data-lucide="check-check" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input id="password2" name="password2" type="password" minlength="6" required 
+                 placeholder="••••••••"
+                 class="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+        </div>
+      </div>
+
+      <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-purple-600/30 transition-all flex items-center justify-center space-x-2 mt-4">
+        <i data-lucide="user-check" class="w-4 h-4"></i>
+        <span>Daftar Akun Pemilih</span>
+      </button>
+    </form>
+
+    <div class="text-center pt-4 border-t border-slate-800">
+      <p class="text-xs text-slate-400">
+        Sudah memiliki akun terdaftar? 
+        <a href="{{ url_for('login') }}" class="font-semibold text-blue-400 hover:text-blue-300 transition-colors">Masuk di sini</a>
+      </p>
+    </div>
+
   </div>
 </div>
 {% endblock %}

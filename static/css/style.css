@@ -1,344 +1,42 @@
-/* VoteChain — tampilan bersih, netral, tidak “template AI” */
+/* VoteChain Enterprise CSS Extensions */
 
-:root {
-  --ink: #1a1d21;
-  --muted: #5c6570;
-  --line: #e6e8eb;
-  --bg: #f7f8f9;
-  --card: #ffffff;
-  --primary: #1f4b99;
-  --primary-hover: #183d7a;
-  --ok: #0d7a4f;
-  --ok-bg: #e8f6ef;
-  --bad: #b42318;
-  --bad-bg: #fef3f2;
-  --radius: 10px;
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.4);
+    border-radius: 4px;
+  }
 }
 
+/* Base custom tweaks */
 body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: 15px;
-  line-height: 1.5;
+  background-color: #0B0F19;
 }
 
-.navbar-brand {
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--ink) !important;
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.6);
 }
 
-.nav-link {
-  color: var(--muted) !important;
-  font-size: 0.95rem;
+/* Toast animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.nav-link:hover,
-.nav-link:focus {
-  color: var(--ink) !important;
-}
-
-.btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
-}
-
-.btn-primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-}
-
-/* Tombol vote lama → samakan ke primary */
-.btn-vote {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  font-weight: 500;
-}
-
-.btn-vote:hover {
-  background: var(--primary-hover);
-  color: #fff;
-}
-
-.page-title {
-  font-size: 1.45rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.25rem;
-}
-
-.page-desc {
-  color: var(--muted);
-  max-width: 40rem;
-  margin-bottom: 0;
-}
-
-.panel {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 1.15rem 1.25rem;
-}
-
-.panel-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
-}
-
-.panel-help {
-  color: var(--muted);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.status-banner {
-  border-radius: var(--radius);
-  padding: 0.9rem 1.1rem;
-  border: 1px solid var(--line);
-  background: var(--card);
-}
-
-.status-banner.is-ok {
-  border-color: #b7e0cb;
-  background: var(--ok-bg);
-}
-
-.status-banner.is-bad {
-  border-color: #f0c1bc;
-  background: var(--bad-bg);
-}
-
-.status-label {
-  font-weight: 650;
-  margin-bottom: 0.15rem;
-}
-
-.status-banner.is-ok .status-label { color: var(--ok); }
-.status-banner.is-bad .status-label { color: var(--bad); }
-
-.status-text {
-  font-size: 0.92rem;
-  color: var(--ink);
-}
-
-.lookup-result {
-  border-radius: 8px;
-  padding: 0.9rem 1rem;
-  border: 1px solid var(--line);
-  background: #fafbfc;
-}
-
-.lookup-result.is-ok {
-  border-color: #b7e0cb;
-  background: var(--ok-bg);
-}
-
-.lookup-result.is-bad {
-  border-color: #f0c1bc;
-  background: var(--bad-bg);
-}
-
-.detail-grid dt {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.font-mono,
-code,
-.hash-full,
-.hash-short,
-.payload-box {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.82rem;
-}
-
-.hash-full {
-  word-break: break-all;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-}
-
-.payload-box {
-  display: inline-block;
-  word-break: break-all;
-  background: rgba(0, 0, 0, 0.04);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  max-width: 100%;
-}
-
-.table-block {
-  font-size: 0.92rem;
-}
-
-.table-block thead th {
-  font-weight: 600;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--muted);
-  border-bottom-width: 1px;
-  background: #fafbfc;
-}
-
-.table-block td {
-  vertical-align: middle;
-}
-
-.row-bad {
-  background: #fff8f7;
-}
-
-.detail-row td {
-  border-top: 0;
-  padding-top: 0;
-  background: #fafbfc;
-}
-
-.detail-body {
-  padding: 0.5rem 0.25rem 0.75rem;
-}
-
-.hash-cell {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.hash-meta {
-  font-size: 0.78rem;
-  margin-top: 0.2rem;
-}
-
-.btn-copy {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
-  font-size: 0.75rem;
-  padding: 0.1rem 0.45rem;
-  border-radius: 5px;
-  line-height: 1.4;
-}
-
-.btn-copy:hover {
-  background: #f0f2f5;
-  color: var(--ink);
-}
-
-.btn-copy-xs {
-  font-size: 0.7rem;
-  padding: 0 0.3rem;
-}
-
-.dot-ok {
-  color: var(--ok);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.dot-bad {
-  color: var(--bad);
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.formula-note {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-/* Kartu kandidat — sederhana */
-.candidate-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--card);
-  transition: border-color 0.12s ease;
-}
-
-.candidate-card:hover {
-  border-color: #c5ccd6;
-}
-
-.candidate-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #eef1f5;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  overflow: hidden;
-  flex-shrink: 0;
-  border: 1px solid var(--line);
-}
-
-.candidate-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.stat-card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 0.9rem 1rem;
-}
-
-.stat-label {
-  font-size: 0.75rem;
-  color: var(--muted);
-  margin-bottom: 0.15rem;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 650;
-  color: var(--ink);
-  line-height: 1.2;
-}
-
-.visi-preview {
-  min-height: 3em;
-}
-
-.auth-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.alert-vote-cta {
-  background: #eef3fb;
-  border: 1px solid #c9d7f0;
-  color: var(--ink);
-  border-radius: var(--radius);
-}
-
-.progress {
-  background: #e9edf2;
-}
-
-.progress-bar.bg-vote {
-  background-color: var(--primary) !important;
-}
-
-.text-accent {
-  color: var(--primary) !important;
-}
-
-.vote-btn:disabled,
-.vote-btn.disabled {
-  opacity: 0.75;
-  cursor: wait;
-}
-
-footer {
-  background: transparent;
+.toast-slide-in {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
