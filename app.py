@@ -33,13 +33,20 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "votechain-dev-secret")
-app.config["UPLOAD_FOLDER"] = os.path.join(
-    os.path.dirname(__file__), "static", "img"
-)
+if os.getenv("VERCEL"):
+    app.config["UPLOAD_FOLDER"] = "/tmp"
+else:
+    app.config["UPLOAD_FOLDER"] = os.path.join(
+        os.path.dirname(__file__), "static", "img"
+    )
+
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
-os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+try:
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+except OSError:
+    pass
 
 # Lock ID khusus transaksi voting (serialisasi penomoran blok)
 VOTE_ADVISORY_LOCK = 880_042
@@ -290,11 +297,13 @@ def kandidat_tambah():
         file = request.files.get("foto")
         if file and file.filename and allowed_file(file.filename):
             foto_name = secure_filename(file.filename)
-            # unikkan nama file
             import time
 
             foto_name = f"{int(time.time())}_{foto_name}"
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], foto_name))
+            try:
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], foto_name))
+            except Exception:
+                foto_name = "default.png"
 
         with get_db() as conn:
             cur = get_cursor(conn, dict_cursor=False)
@@ -341,8 +350,12 @@ def kandidat_ubah(id: int):
         if file and file.filename and allowed_file(file.filename):
             import time
 
-            foto_name = f"{int(time.time())}_{secure_filename(file.filename)}"
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], foto_name))
+            new_foto_name = f"{int(time.time())}_{secure_filename(file.filename)}"
+            try:
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], new_foto_name))
+                foto_name = new_foto_name
+            except Exception:
+                pass
 
         with get_db() as conn:
             cur = get_cursor(conn, dict_cursor=False)
