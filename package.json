@@ -1,0 +1,21 @@
+{
+  "name": "votechain-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "VoteChain Enterprise E-Voting Frontend & API Integration (UAS Pemrograman Web)",
+  "scripts": {
+    "dev": "python app.py",
+    "start": "python app.py",
+    "build": "echo 'Building Enterprise Frontend for Vercel deployment...'"
+  },
+  "keywords": [
+    "e-voting",
+    "blockchain",
+    "sha256",
+    "enterprise-frontend",
+    "flask",
+    "tailwind-css"
+  ],
+  "author": "Fransiscus Asisi Kananda Herdion Dharmawan (NIM: 24.83.1107)",
+  "license": "MIT"
+}
