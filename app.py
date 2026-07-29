@@ -51,6 +51,13 @@ except OSError:
 # Lock ID khusus transaksi voting (serialisasi penomoran blok)
 VOTE_ADVISORY_LOCK = 880_042
 
+# Otomatis buat tabel & admin default saat startup (termasuk Vercel serverless)
+try:
+    if is_connected():
+        init_db()
+except Exception:
+    pass
+
 
 # ── Session sync (status vote selalu akurat dari DB) ─────────────────────────
 
@@ -773,6 +780,18 @@ def status():
     if not ok and LAST_DB_ERROR:
         res["error_detail"] = LAST_DB_ERROR
     return res
+
+
+@app.route("/init-db")
+def route_init_db():
+    try:
+        init_db()
+        return {
+            "status": "success",
+            "message": "Skema database & tabel (users, candidates, blockchain_ledger) berhasil dibuat!",
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 
 # ── Boot ─────────────────────────────────────────────────────────────────────
