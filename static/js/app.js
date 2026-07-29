@@ -151,3 +151,146 @@ function showToast(message, type = "info") {
     });
   });
 })();
+
+/**
+ * Red Hat Enterprise Server Network Background Canvas Animation
+ * Ultra-lightweight particle node mesh with travelling data packets
+ */
+(function initNetworkBgCanvas() {
+  document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.getElementById("network-bg-canvas");
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    window.addEventListener("resize", () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    });
+
+    const nodeCount = Math.min(Math.floor((width * height) / 22000), 45);
+    const nodes = [];
+    const packets = [];
+
+    class Node {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.radius = Math.random() * 2 + 1.5;
+        this.isServer = Math.random() > 0.7; // 30% server nodes
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        if (this.isServer) {
+          ctx.fillStyle = "#EE0000";
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = "#EE0000";
+        } else {
+          ctx.fillStyle = "#38BDF8";
+          ctx.shadowBlur = 0;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    class Packet {
+      constructor(from, to) {
+        this.from = from;
+        this.to = to;
+        this.progress = 0;
+        this.speed = Math.random() * 0.015 + 0.008;
+      }
+
+      update() {
+        this.progress += this.speed;
+        return this.progress >= 1;
+      }
+
+      draw() {
+        const x = this.from.x + (this.to.x - this.from.x) * this.progress;
+        const y = this.from.y + (this.to.y - this.from.y) * this.progress;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = "#EE0000";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#EE0000";
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    for (let i = 0; i < nodeCount; i++) {
+      nodes.push(new Node());
+    }
+
+    function animate() {
+      if (document.hidden) {
+        requestAnimationFrame(animate);
+        return;
+      }
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw subtle grid lines
+      ctx.strokeStyle = "rgba(35, 43, 58, 0.2)";
+      ctx.lineWidth = 1;
+
+      // Draw node connections & spawn packets
+      const maxDist = 150;
+      for (let i = 0; i < nodes.length; i++) {
+        nodes[i].update();
+        nodes[i].draw();
+
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < maxDist) {
+            const alpha = (1 - dist / maxDist) * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            // Spawn data packet occasionally
+            if (Math.random() < 0.001) {
+              packets.push(new Packet(nodes[i], nodes[j]));
+            }
+          }
+        }
+      }
+
+      // Update & draw active packets
+      for (let i = packets.length - 1; i >= 0; i--) {
+        if (packets[i].update()) {
+          packets.splice(i, 1);
+        } else {
+          packets[i].draw();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  });
+})();
