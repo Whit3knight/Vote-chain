@@ -46,9 +46,11 @@ function showToast(message, type = "info") {
 }
 
 /**
- * VoteChain Ultra-Lightweight & Fail-Safe Blockchain Loader Manager
+ * VoteChain Ultra-Lightweight Loader & Anti-DDoS Throttling Manager
  */
 (function () {
+  let hardDismissTimer = null;
+
   function getElements() {
     return {
       loader: document.getElementById("votechain-loader"),
@@ -57,48 +59,71 @@ function showToast(message, type = "info") {
     };
   }
 
+  // Tampilkan loader dengan batas maksimal KETAT 3 DETIK (3000ms)
   window.showVoteChainLoader = function (titleText = "Memuat VoteChain...") {
     const el = getElements();
     if (!el.loader) return;
 
     if (el.title) el.title.textContent = titleText;
-    if (el.bar) el.bar.style.width = "40%";
+    if (el.bar) el.bar.style.width = "45%";
 
-    el.loader.classList.remove("opacity-0", "pointer-events-none");
-    el.loader.classList.add("opacity-100");
+    el.loader.classList.remove("hidden", "opacity-0", "pointer-events-none");
+    el.loader.classList.add("flex", "opacity-100");
+
+    // BATAS MAKSIMAL 3 DETIK (Hard Auto-Dismiss Fail-Safe)
+    clearTimeout(hardDismissTimer);
+    hardDismissTimer = setTimeout(() => {
+      window.hideVoteChainLoader();
+    }, 3000);
   };
 
+  // Sembunyikan loader dan bersihkan kelas overlay
   window.hideVoteChainLoader = function () {
     const el = getElements();
     if (!el.loader) return;
 
+    clearTimeout(hardDismissTimer);
     if (el.bar) el.bar.style.width = "100%";
 
+    el.loader.classList.remove("opacity-100");
+    el.loader.classList.add("opacity-0", "pointer-events-none");
+
     setTimeout(() => {
-      el.loader.classList.remove("opacity-100");
-      el.loader.classList.add("opacity-0", "pointer-events-none");
-    }, 200);
+      el.loader.classList.remove("flex");
+      el.loader.classList.add("hidden");
+    }, 250);
   };
 
   document.addEventListener("DOMContentLoaded", () => {
-    const el = getElements();
-    if (el.bar) el.bar.style.width = "75%";
-
-    // Sembunyikan loader secepat mungkin begitu DOM siap atau window loaded
+    // Sembunyikan loader bawaan secepat mungkin (maksimal 300ms saat buka halaman)
     window.addEventListener("load", () => {
       window.hideVoteChainLoader();
     });
 
-    // Fail-safe timeout ultra cepat (350ms): Pengguna TIDAK AKAN PERNAH terhalang
     setTimeout(() => {
       window.hideVoteChainLoader();
-    }, 350);
+    }, 300);
 
-    // Integrasi ringan saat mengirim formulir
+    // ── Anti-DDoS & Form Throttling Protection (Tenggat 3 Detik Per Submit) ──
     document.querySelectorAll("form").forEach(form => {
       form.addEventListener("submit", (e) => {
         if (e.defaultPrevented) return;
+
+        // Tampilkan loader selama maksimal 3 detik
         window.showVoteChainLoader("Memproses Data...");
+
+        // Proteksi Anti-DDoS Client Side: Matikan tombol submit selama 3 detik
+        const submitBtns = form.querySelectorAll("button[type='submit'], input[type='submit']");
+        submitBtns.forEach(btn => {
+          btn.disabled = true;
+          btn.classList.add("opacity-60", "cursor-not-allowed");
+          
+          // Primary anti-spam cooldown 3 detik
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.classList.remove("opacity-60", "cursor-not-allowed");
+          }, 3000);
+        });
       });
     });
 
